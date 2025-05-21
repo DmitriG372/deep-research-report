@@ -505,7 +505,7 @@
 
                 let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
                 const payload = { contents: chatHistory };
-                const apiUrl = 'http://localhost:5001/api/gemini';
+                const apiUrl = 'https://research.fly.dev/api/gemini';
 
                 try {
                     const response = await fetch(apiUrl, {
