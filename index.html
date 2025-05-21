@@ -41,8 +41,14 @@
             transition: max-height 0.3s ease-out; 
             background-color: #FAFAF9; /* stone-50 */
             border-left: 4px solid #A8A649;
+            white-space: normal;
+            word-break: break-word;
         }
-        .accordion-button.open + .accordion-content { max-height: 1000px; }
+        .accordion-button.open + .accordion-content {
+            max-height: none;
+            overflow: visible;
+            transition: max-height 0.3s ease-in;
+        }
         
         .tooltip {
             position: relative;
