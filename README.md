@@ -22,6 +22,23 @@ See projekt on interaktiivne kriitiline analüüs tehisintellekti "Deep Research
 
 3. (Valikuline) Süvaanalüüsi funktsioon töötab ainult siis, kui seadistad serveripoolse proxy Gemini API jaoks.
 
+## Kuidas kasutada Gemini API süvaanalüüsi lokaalselt
+
+1. Lisa oma Gemini API võti faili `proxy.py` või aseta see keskkonnamuutujasse `GEMINI_API_KEY`.
+2. Paigalda vajalikud moodulid:
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. Käivita proxy server:
+   ```sh
+   python3 proxy.py
+   ```
+4. Muuda `index.html` JavaScriptis Gemini API URL:
+   ```js
+   const apiUrl = 'http://localhost:5000/api/gemini';
+   ```
+5. Ava leht `http://localhost:8000` ja kasuta süvaanalüüsi nuppu.
+
 ## Kuidas avaldada GitHub Pages'is
 
 1. Loo uus repo GitHubis (nt `deep-research-report`).
