@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kriitiline analüüs: TI Deep Research funktsioon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #F5F5F4; /* stone-100 */
+        }
+        .nav-link { 
+            transition: all 0.3s ease; 
+            color: #57534E; /* stone-600 */
+        }
+        .nav-link.active {
+            background-color: #A8A649; 
+            color: white;
+            font-weight: 600;
+        }
+        .nav-link:not(.active):hover {
+            background-color: #E7E5E4; /* stone-200 */
+            color: #A8A649; 
+        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        .accordion-button {
+            background-color: #F5F5F4; /* stone-100 */
+            color: #A8A649;
+            transition: background-color 0.3s ease;
+        }
+        .accordion-button:hover {
+            background-color: #E7E5E4; /* stone-200 */
+        }
+        .accordion-button span { color: #A8A649; }
+        .accordion-content { 
+            max-height: 0; 
+            overflow: hidden; 
+            transition: max-height 0.3s ease-out; 
+            background-color: #FAFAF9; /* stone-50 */
+            border-left: 4px solid #A8A649;
+        }
+        .accordion-button.open + .accordion-content { max-height: 1000px; }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted #A8A649; 
+            cursor: help;
+            color: #A8A649;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #292524; /* stone-800 */
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #292524 transparent transparent transparent;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .interactive-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: #FAFAF9; /* stone-50 */
+            border: 1px solid #E7E5E4; /* stone-200 */
+        }
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .main-title-custom-color {
+            color: #A8A649; 
+        }
+        .section-title-custom-color {
+            color: #A8A649;
+        }
+        .risk-card-title-custom-color {
+            color: #A8A649;
+        }
+        .dr-process-step {
+            border: 2px solid #A8A649; 
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            background-color: #F5F5F4; /* stone-100 */
+            position: relative;
+            color: #3F3F46; /* stone-700 */
+        }
+        .dr-process-arrow {
+            font-size: 2rem;
+            color: #A8A649; 
+            align-self: center;
+        }
+        .custom-button {
+            background-color: #A8A649;
+            color: white;
+        }
+        .custom-button:hover {
+            background-color: #8F8C40; /* Darker shade of A8A649 */
+        }
+        .hallucination-example-bg {
+            background-color: #F5F5F4; /* stone-100 */
+            border-color: #D6D3D1; /* stone-300 */
+        }
+        .recommendation-item-bg {
+            background-color: #FAFAF9; /* stone-50 */
+            border-color: #E7E5E4; /* stone-200 */
+        }
+        .recommendation-title-custom-color {
+            color: #A8A649;
+        }
+
+        @media (max-width: 768px) {
+            .dr-process-container {
+                flex-direction: column;
+            }
+            .dr-process-arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content-area {
+             white-space: pre-wrap; 
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 min-h-screen flex flex-col md:flex-row"> 
+    <nav id="mainNav" class="md:w-64 bg-stone-50 p-4 space-y-2 shadow-lg md:min-h-screen">
+        <div class="flex flex-col items-center mb-4">
+            <img src="images/melior-projekt-logo.png" alt="Melior Projekt logo" class="w-32 h-auto mb-2" style="max-width: 140px; height: auto;" />
+        </div>
+        <h2 class="text-2xl font-bold mb-6 border-b-2 pb-2 section-title-custom-color border-[#A8A649]">Menüü</h2>
+        <a href="#sissejuhatus" class="nav-link block p-3 rounded-lg">1. Sissejuhatus</a>
+        <a href="#mis-on-dr" class="nav-link block p-3 rounded-lg">2. Mis on Deep Research?</a>
+        <a href="#riskid" class="nav-link block p-3 rounded-lg">3. Riskid ja Piirangud</a>
+        <a href="#hoiatused" class="nav-link block p-3 rounded-lg">4. Põhjendatud Hoiatused</a>
+        <a href="#soovitused" class="nav-link block p-3 rounded-lg">5. Soovitused teadlikumaks ja kriitilisemaks kasutamiseks</a>
+        <a href="#kokkuvote" class="nav-link block p-3 rounded-lg">6. Kokkuvõte</a>
+    </nav>
+
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold main-title-custom-color">Miks ei tohiks liigselt usaldada tehisintellekti "Deep Research" funktsiooni?</h1>
+            <p class="text-xl text-stone-600 mt-2">Kriitiline analüüs ja soovitused teadlikuks kasutamiseks</p>
+        </header>
+
+        <section id="sissejuhatus" class="content-section bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-3xl font-semibold mb-4 section-title-custom-color">1. Sissejuhatus: Kütkestav lubadus ja varjatud ohud</h2>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Tehisintellekt (TI) on üha enam muutumas meie igapäevaelu lahutamatuks osaks, eriti viisides, kuidas me hangime ja töötleme informatsiooni. Suured keelemudelid (LLM-id) ja nendel põhinevad tööriistad on toonud kaasa revolutsiooni teabe kättesaadavuses, lubades kiirendada uurimisprotsesse ja hõlbustada juurdepääsu teadmistele. Selles kontekstis on esile kerkinud uus ja ambitsioonikas TI võimekus, mida tuntakse "Deep Research" (süva-uurimuse) funktsioonina. See lubab pakkuda senisest palju põhjalikumat ja laiaulatuslikumat infootsingut ning analüüsi, justkui tuues igaüheni personaalse tipptasemel uurija.</p>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Selle funktsiooni turundus maalib pildi tööriistast, mis suudab ära teha professionaalse uurija töö, luues kõrgeid ootusi kvaliteedi ja usaldusväärsuse osas. Kuid tehisintellekti aluspõhimõtted ja praktilised kogemused, sealhulgas kalduvus genereerida väljamõeldisi (hallutsinatsioone) ja peegeldada andmetes leiduvaid eelarvamusi, viitavad sellele, et selline lubadus on sageli liialdatud. On oluline mõista, et kuigi "Deep Research" võib jäljendada professionaalse uurija tegevuse teatud aspekte, nagu info kogumine ja struktureerimine, ei suuda see täielikult kopeerida inimuurija kriitilist mõtlemist, allikakriitikat ega loogilist järeldamist.</p>
+            <p class="text-lg leading-relaxed text-stone-700">Käesoleva interaktiivse analüüsi keskne tees on, et hoolimata "Deep Research" funktsiooni potentsiaalist pakkuda kiiret ja laiaulatuslikku teavet, kätkeb selle liigne ja kriitikavaba usaldamine endas märkimisväärseid riske. Need riskid tulenevad tehisintellekti olemuslikest piirangutest, selle treeningandmete iseärasustest ja fundamentaalsetest usaldusväärsuse probleemidest. See analüüs uurib neid riske süvitsi ja pakub konkreetseid soovitusi funktsiooni teadlikumaks ning kriitilisemaks kasutamiseks.</p>
+        </section>
+
+        <section id="mis-on-dr" class="content-section bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-3xl font-semibold mb-4 section-title-custom-color">2. Mis on tehisintellekti "Deep Research" funktsioon?</h2>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Tehisintellekti "Deep Research" funktsioon kujutab endast täiustatud võimekust, mis on integreeritud näiteks OpenAI ChatGPT platvormi. See on loodud selleks, et võimaldada tehisintellektil teostada sügavamat ja laiaulatuslikumat uurimistööd, minnes kaugemale lihtsatest küsimus-vastus interaktsioonidest. Funktsioon kasutab sageli kõige uuemaid ja võimekamaid TI mudeleid, mis on loodud spetsiaalselt veebisirvimiseks ja andmete analüüsimiseks.</p>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Funktsiooni olemus seisneb selles, et TI agent mitte ainult ei vasta kasutaja päringule olemasolevate teadmiste põhjal, vaid suudab aktiivselt internetist informatsiooni otsida, seda analüüsida ja sünteesida. Eesmärk on pakkuda põhjalikumat analüüsi, sünteesides informatsiooni erinevatest formaatidest ja allikatest. See eristab "Deep Research" funktsiooni tavapärasest veebiotsingust, rõhutades selle "agentset võimekust" – TI tegutseb iseseisvamalt info hankimisel ja töötlemisel.</p>
+            
+            <div class="my-6">
+                <h3 class="text-2xl font-medium mb-3 section-title-custom-color">"Deep Research" protsessi lihtsustatud vooskeem:</h3>
+                <div class="dr-process-container flex flex-col md:flex-row justify-around items-center p-4 bg-stone-50 rounded-lg">
+                    <div class="dr-process-step tooltip">Kasutaja päring
+                        <span class="tooltiptext">Algne küsimus või uurimisteema, mille kasutaja sisestab.</span>
+                    </div>
+                    <div class="dr-process-arrow">➔</div>
+                    <div class="dr-process-step tooltip">TI veebiotsing
+                        <span class="tooltiptext">TI agent otsib aktiivselt asjakohast infot veebist.</span>
+                    </div>
+                    <div class="dr-process-arrow">➔</div>
+                    <div class="dr-process-step tooltip">Andmete analüüs ja süntees
+                        <span class="tooltiptext">Kogutud andmeid töödeldakse, analüüsitakse ja seostatakse.</span>
+                    </div>
+                    <div class="dr-process-arrow">➔</div>
+                    <div class="dr-process-step tooltip">Struktureeritud aruanne
+                        <span class="tooltiptext">TI koostab leitud info põhjal aruande, mis võib sisaldada ka viiteid.</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Peamised kasutusvaldkonnad hõlmavad kiiret teabehankimist keerulistel teemadel, suurte infohulkade läbitöötamist ja esialgse analüüsi koostamist. Siiski on oluline mõista, et selle "sügavus" on piiratud TI võimega mõista konteksti ja nüansse ning sõltub ligipääsetava veebisisu kvaliteedist.</p>
+        </section>
+
+        <section id="riskid" class="content-section bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-3xl font-semibold mb-4 section-title-custom-color">3. Peamised riskid ja piirangud</h2>
+            <p class="mb-6 text-lg leading-relaxed text-stone-700">"Deep Research" funktsiooni kasutamisega kaasnevad mitmed olemuslikud riskid ja piirangud, mis tulenevad TI tehnoloogia praegusest arengutasemest. Nende teadvustamine on kriitilise tähtsusega. TI-l puudub inimlik arusaamine, selle teadmised sõltuvad treeningandmetest ning selle olemus on pigem statistiline kui analüütiline. See võib viia eksiarvamusteni, nagu TI eksimatus või võime asendada inimuurijat.</p>
+            
+            <h3 class="text-2xl font-medium mb-4 section-title-custom-color">"Deep Research" funktsiooni peamised ohukohad (Tabel 1):</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="interactive-card p-6 rounded-lg risk-card" data-risk-details="TI genereerib usutavana näivat, kuid tegelikkusele mittevastavat infot või viiteid olematutele allikatele. See on üks suurimaid väljakutseid, kuna väljamõeldised võivad olla peened ja segatud korrektse infoga.">
+                    <h4 class="text-xl font-semibold mb-2 risk-card-title-custom-color">Hallutsinatsioonid</h4>
+                    <p class="text-stone-600 text-sm mb-3">Faktide ja allikate väljamõtlemine. <span class="underline cursor-pointer risk-details-link text-[#A8A649] hover:text-[#8F8C40]">Vajuta detailideks.</span></p>
+                </div>
+                <div class="interactive-card p-6 rounded-lg risk-card" data-risk-details="TI peegeldab ja võimendab treeningandmetes ja veebis leiduvaid eelarvamusi (nt soolised, rassilised, kultuurilised stereotüübid). See võib viia ebaõiglaste või diskrimineerivate tulemusteni.">
+                    <h4 class="text-xl font-semibold mb-2 risk-card-title-custom-color">Andmete kallutatus (Bias)</h4>
+                    <p class="text-stone-600 text-sm mb-3">Eelarvamuste peegeldamine. <span class="underline cursor-pointer risk-details-link text-[#A8A649] hover:text-[#8F8C40]">Vajuta detailideks.</span></p>
+                </div>
+                <div class="interactive-card p-6 rounded-lg risk-card" data-risk-details="TI ei pruugi mõista info tegelikku tähendusvarjundit, irooniat või kultuurilist konteksti, mis viib valestõlgendusteni. Sõnad võivad olla korrektsed, aga tähendus moonutatud.">
+                    <h4 class="text-xl font-semibold mb-2 risk-card-title-custom-color">Puudulik kontekstitaju</h4>
+                    <p class="text-stone-600 text-sm mb-3">Tähendusvarjundite mittemõistmine. <span class="underline cursor-pointer risk-details-link text-[#A8A649] hover:text-[#8F8C40]">Vajuta detailideks.</span></p>
+                </div>
+                <div class="interactive-card p-6 rounded-lg risk-card" data-risk-details="TI võib kasutada ebakvaliteetseid, vananenud või propagandistlikke allikaid ning esitada neid usaldusväärsetena, ilma kriitilise hindamiseta. Allikate kontroll on kasutaja vastutus.">
+                    <h4 class="text-xl font-semibold mb-2 risk-card-title-custom-color">Allikate ebausaldusväärsus</h4>
+                    <p class="text-stone-600 text-sm mb-3">Kontrollimatud ja ebakvaliteetsed allikad. <span class="underline cursor-pointer risk-details-link text-[#A8A649] hover:text-[#8F8C40]">Vajuta detailideks.</span></p>
+                </div>
+                <div class="interactive-card p-6 rounded-lg risk-card" data-risk-details="Kuigi DR otsib veebist, on selle 'baasteadmised' piiratud treeningandmete ajakohasusega ja ulatusega; uusim või väga spetsiifiline info võib puududa või olla vananenud.">
+                    <h4 class="text-xl font-semibold mb-2 risk-card-title-custom-color">Teadmiste piiratus</h4>
+                    <p class="text-stone-600 text-sm mb-3">Aegumine ja lüngad teadmistes. <span class="underline cursor-pointer risk-details-link text-[#A8A649] hover:text-[#8F8C40]">Vajuta detailideks.</span></p>
+                </div>
+                <div class="interactive-card p-6 rounded-lg risk-card" data-risk-details="TI järelduskäik on sageli läbipaistmatu, mistõttu on raske mõista, miks ja kuidas teatud tulemuseni jõuti. See raskendab vigade tuvastamist ja parandamist.">
+                    <h4 class="text-xl font-semibold mb-2 risk-card-title-custom-color">"Musta kasti" probleem</h4>
+                    <p class="text-stone-600 text-sm mb-3">Läbipaistmatu otsustusprotsess. <span class="underline cursor-pointer risk-details-link text-[#A8A649] hover:text-[#8F8C40]">Vajuta detailideks.</span></p>
+                </div>
+            </div>
+            <div id="riskModalStatic" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center hidden z-40 p-4">
+                <div class="relative mx-auto p-8 border w-11/12 md:w-1/2 shadow-lg rounded-xl bg-white">
+                    <h3 id="riskModalStaticTitle" class="text-2xl font-semibold mb-4 section-title-custom-color">Riski detailid</h3>
+                    <p id="riskModalStaticDetails" class="text-lg text-stone-700 leading-relaxed"></p>
+                    <button id="closeRiskModalStatic" class="absolute top-4 right-4 text-stone-700 hover:text-[#A8A649] text-2xl font-bold">&times;</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="hoiatused" class="content-section bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-3xl font-semibold mb-4 section-title-custom-color">4. Põhjendatud Hoiatused</h2>
+            <p class="mb-6 text-lg leading-relaxed text-stone-700">Lisaks üldistele riskidele on spetsiifilisi aspekte, mille tõttu tuleks "Deep Research" funktsiooni väljundeid käsitleda erilise ettevaatlikkusega. Järgnevalt on toodud viis peamist hoiatust:</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <button class="accordion-button w-full text-left p-4 rounded-lg text-xl font-medium focus:outline-none flex justify-between items-center">
+                        4.1. Loogika ja järelduste haprus
+                        <span class="transform transition-transform duration-300 text-2xl">+</span>
+                    </button>
+                    <div class="accordion-content p-4 rounded-b-lg">
+                        <p class="mb-3 text-lg leading-relaxed text-stone-700">TI ei kasuta loogikat inimlikul moel, vaid jäljendab mustreid treeningandmetest. See võib genereerida keeleliselt korrektset, kuid sisuliselt vigast või valedel eeldustel põhinevat teksti. Pealtnäha loogiline struktuur ei taga argumentide paikpidavust.</p>
+                        <p class="text-lg leading-relaxed text-stone-700"><strong>Näide:</strong> TI võib korrektselt tuvastada kahe nähtuse vahelise statistilise seose (korrelatsiooni), kuid esitada selle ekslikult kausaalse seosena, kui selline muster on andmetes sage, ilma tegelikku põhjuslikkuse analüüsi teostamata.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="accordion-button w-full text-left p-4 rounded-lg text-xl font-medium focus:outline-none flex justify-between items-center">
+                        4.2. Hallutsinatsioonioht
+                        <span class="transform transition-transform duration-300 text-2xl">+</span>
+                    </button>
+                    <div class="accordion-content p-4 rounded-b-lg">
+                        <p class="mb-3 text-lg leading-relaxed text-stone-700">Hallutsinatsioonid on TI poolt genereeritud faktiliselt vale, kontekstiväline või väljamõeldud sisu, mida esitatakse tõepäraselt. Need võivad olla peened, segatud korrektse infoga ja raskesti tuvastatavad ilma põhjaliku faktikontrollita.</p>
+                        <p class="mb-3 text-lg leading-relaxed text-stone-700"><strong>Näide:</strong> TI võib viidata teadusartiklile, mis kõlab usutavalt (nt "Uuring näitas, et X põhjustab Y"), kuid tegelikkuses sellist artiklit või uuringut ei eksisteeri või selle järeldused on teistsugused.</p>
+                        <div class="mt-4 p-4 border border-dashed rounded-md hallucination-example-bg">
+                            <p class="font-semibold section-title-custom-color">Interaktiivne näide: "Tunne ära hallutsinatsioon"</p>
+                            <p class="my-2 text-stone-700">Kumb järgnevatest väidetest (eeldades, et küsisid TI-lt Eesti ajaloo kohta) on tõenäolisemalt hallutsinatsioon?</p>
+                            <ul class="list-disc list-inside ml-4 space-y-1 text-stone-700">
+                                <li>Väide A: "Jüriöö ülestõus toimus 1343. aastal."</li>
+                                <li>Väide B: "Eesti esimene kuningas, Valdemar Suur, krooniti 1102. aastal Tartus."</li>
+                            </ul>
+                            <button onclick="revealHallucinationAnswer(this)" class="custom-button mt-3 px-4 py-2 rounded-md">Näita vastust</button>
+                            <p class="hallucination-answer hidden mt-2 text-stone-800"><strong>Vastus:</strong> Väide B on tõenäolisemalt hallutsinatsioon. Eestil ei ole ajaloos olnud kuningaid sellisel kujul ja antud nimi ning aastaarv on väljamõeldud kontekstis. Väide A on ajalooliselt korrektne.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <button class="accordion-button w-full text-left p-4 rounded-lg text-xl font-medium focus:outline-none flex justify-between items-center">
+                        4.3. Usaldusväärsuse kriis
+                        <span class="transform transition-transform duration-300 text-2xl">+</span>
+                    </button>
+                    <div class="accordion-content p-4 rounded-b-lg">
+                        <p class="mb-3 text-lg leading-relaxed text-stone-700">See hõlmab allikate kvaliteedi probleeme (TI võib kasutada ebausaldusväärseid allikaid), võltsitud või valesti omistatud allikaid ning "musta kasti" efekti, kus TI otsustusprotsess on läbipaistmatu. Viidete olemasolu ei taga usaldusväärsust.</p>
+                        <p class="text-lg leading-relaxed text-stone-700"><strong>Näide:</strong> "Deep Research" võib esitada aruande koos viidetega, mis tunduvad akadeemilised, kuid kontrollimisel selgub, et mõni viide on olematu või viidatud artikkel räägib hoopis muust teemast.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="accordion-button w-full text-left p-4 rounded-lg text-xl font-medium focus:outline-none flex justify-between items-center">
+                        4.4. Mudelite treenimise varjuküljed
+                        <span class="transform transition-transform duration-300 text-2xl">+</span>
+                    </button>
+                    <div class="accordion-content p-4 rounded-b-lg">
+                        <p class="mb-3 text-lg leading-relaxed text-stone-700">TI mudelite kvaliteet sõltub treeningandmetest, mis võivad olla kallutatud (peegeldades ühiskondlikke eelarvamusi), aegunud või lünklikud. See võib viia teadmiste homogeniseerumiseni ja alternatiivsete vaatenurkade marginaliseerimiseni.</p>
+                        <p class="text-lg leading-relaxed text-stone-700"><strong>Näide:</strong> Kui TI on treenitud peamiselt ingliskeelse ja läänekeskse infoga, võib see alaesindada või valesti tõlgendada teiste kultuuride või keeleruumide spetsiifilisi teemasid.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <button class="accordion-button w-full text-left p-4 rounded-lg text-xl font-medium focus:outline-none flex justify-between items-center">
+                        4.5. Intellektuaalomandi ja autorsuse küsimused
+                        <span class="transform transition-transform duration-300 text-2xl">+</span>
+                    </button>
+                    <div class="accordion-content p-4 rounded-b-lg">
+                        <p class="mb-3 text-lg leading-relaxed text-stone-700">TI kasutamine tõstatab keerulisi küsimusi autoriõiguste kohta, nii treeningandmete kui ka genereeritud sisu osas. Plagiaadi oht ja ebaselgus autorsuse osas võivad tekitada juriidilisi ja eetilisi probleeme.</p>
+                        <p class="text-lg leading-relaxed text-stone-700"><strong>Näide:</strong> "Deep Research" võib genereerida teksti, mis on väga sarnane mõne autoriõigusega kaitstud allikaga, ilma korrektse viitamiseta, seades kasutaja plagiaadiriski.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="soovitused" class="content-section bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-3xl font-semibold mb-4 section-title-custom-color">5. Soovitused teadlikumaks ja kriitilisemaks kasutamiseks</h2>
+            <p class="mb-6 text-lg leading-relaxed text-stone-700">Arvestades riske, on oluline läheneda "Deep Research" funktsiooni kasutamisele teadlikult. Järgnevalt on praktilised sammud (Tabel 2), mis aitavad riske maandada:</p>
+            
+            <div class="space-y-3">
+                <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">1. Defineeri oma uurimisküsimus täpselt.</h4>
+                    <p class="text-stone-600 mt-1">Mida spetsiifilisem ja selgem on päring, seda relevantsem ja fokuseeritum on tõenäoliselt ka tulemus. Väldi liiga laiu või mitmetähenduslikke küsimusi.</p>
+                </div>
+                <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">2. Kasuta "Deep Research" esialgseks infootsinguks ja inspiratsiooniks.</h4>
+                    <p class="text-stone-600 mt-1">Suhtu tulemustesse kui hüpoteesidesse, ideedesse või lähtepunktidesse edasiseks, sügavamaks inimlikuks uurimiseks, mitte kui lõplike vastustena.</p>
+                </div>
+                <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">3. Kontrolli kõiki olulisi fakte, väiteid ja andmeid.</h4>
+                    <p class="text-stone-600 mt-1">Võrdle TI poolt esitatud informatsiooni vähemalt 2-3 usaldusväärse, sõltumatu ja tunnustatud allikaga (nt teadusartiklid, erialaraamatud, ametlik statistika).</p>
+                </div>
+                <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">4. Dešifreeri ja kontrolli TI poolt pakutud allikaid.</h4>
+                    <p class="text-stone-600 mt-1">Otsi üles originaalallikad. Kontrolli, kas allikas on reaalne, kas TI on seda korrektselt tsiteerinud ja kas selle sisu on adekvaatselt tõlgendatud. Ole valvas olematute allikate suhtes.</p>
+                </div>
+                <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">5. Ole teadlik ja kriitiline võimalike eelarvamuste suhtes.</h4>
+                    <p class="text-stone-600 mt-1">Analüüsi, kas tulemused võivad peegeldada eelarvamusi. Otsi teadlikult vastandlikke või alternatiivseid vaatenurki.</p>
+                </div>
+                 <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">6. Ära kopeeri-kleebi. Töötle ja sünteesi infot ise.</h4>
+                    <p class="text-stone-600 mt-1">Kasuta TI tulemusi inspiratsiooniallikana, kuid sõnasta järeldused, argumendid ja tekst alati ise, lisades oma analüüsi ja kriitilise hinnangu.</p>
+                </div>
+                 <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">7. Mõista tööriista teadmiste piire (sh ajaline piir).</h4>
+                    <p class="text-stone-600 mt-1">Uuri, millal tööriista aluseks olev keelemudel viimati uuendati. Ära eelda, et see teab kõige uuemat informatsiooni.</p>
+                </div>
+                 <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">8. Konsulteeri vajadusel valdkonnaeksperdiga.</h4>
+                    <p class="text-stone-600 mt-1">Keeruliste teemade puhul lase TI tulemused üle vaadata vastava ala asjatundjal.</p>
+                </div>
+                 <div class="p-4 rounded-lg border recommendation-item-bg">
+                    <h4 class="font-semibold text-lg recommendation-title-custom-color">9. Ole läbipaistev TI kasutamise osas.</h4>
+                    <p class="text-stone-600 mt-1">Kui kasutad TI-genereeritud sisu oma töös, viita sellele korrektselt vastavalt kehtivatele juhistele.</p>
+                </div>
+            </div>
+            <p class="mt-6 text-lg leading-relaxed text-stone-700">Inimese roll tehisintellekti ajastul ei vähene, vaid transformeerub. Lõplik tõlgendamine, konteksti asetamine ja otsuste tegemine peavad jääma inimese vastutuseks.</p>
+        </section>
+
+        <section id="kokkuvote" class="content-section bg-white p-6 rounded-xl shadow-md mb-8">
+            <h2 class="text-3xl font-semibold mb-4 section-title-custom-color">6. Kokkuvõte: Tasakaalustatud ja teadlik lähenemine</h2>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">"Deep Research" funktsioon pakub ahvatlevaid võimalusi, kuid sellega kaasnevad tõsised riskid: hallutsinatsioonid, eelarvamused, puudulik loogika ja probleemid allikate usaldusväärsusega. Nende maandamiseks on hädavajalik pidev kriitiline meel ja kogu TI poolt genereeritud info hoolikas kontrollimine.</p>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Inimese roll teadmiste loomisel muutub – olulisemaks saab oskus esitada õigeid küsimusi, hinnata vastuseid kriitiliselt ja sünteesida infot laiemasse konteksti. TI on abivahend, mitte asendaja.</p>
+            <p class="mb-4 text-lg leading-relaxed text-stone-700">Paradoksaalsel kombel võib TI ajastul suureneda vajadus veelgi põhjalikuma inimliku uurimistöö järele, et filtreerida ja valideerida TI genereeritud infomassi. Tõeline "sügav uurimistöö" jääb inimeste pärusmaaks.</p>
+            <p class="text-lg leading-relaxed text-stone-700">Tasakaalustatud ja informeeritud lähenemine, mis ühendab tehisintellekti võimsuse inimliku tarkuse ja kriitilise meelega, on võti nende tehnoloogiate vastutustundlikuks rakendamiseks.</p>
+        </section>
+
+        <footer class="mt-12 pt-8 border-t border-stone-300 text-center text-stone-500">
+            <p>&copy; 2024 Interaktiivne analüüs. Sisu põhineb esitatud aruandel.</p>
+        </footer>
+    </main>
+
+    <div id="geminiModal" class="modal fixed inset-0 bg-gray-600 bg-opacity-75 overflow-y-auto h-full w-full flex items-center justify-center hidden z-50 p-4">
+        <div class="relative mx-auto p-6 border w-full md:w-2/3 lg:w-1/2 shadow-lg rounded-xl bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="geminiModalTitle" class="text-2xl font-semibold section-title-custom-color">Süvaanalüüs</h3>
+                <button id="closeGeminiModal" class="text-stone-700 hover:text-[#A8A649] text-2xl font-bold">&times;</button>
+            </div>
+            <div id="geminiModalContentContainer" class="text-lg text-stone-700 leading-relaxed max-h-[60vh] overflow-y-auto">
+                <p id="geminiLoadingIndicator" class="text-center py-4" style="color: #A8A649;">Laen analüüsi...</p>
+                <div id="geminiResponseArea" class="modal-content-area"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('#mainNav .nav-link');
+            const contentSections = document.querySelectorAll('main .content-section');
+            const accordionButtons = document.querySelectorAll('.accordion-button');
+            
+            const riskModalStatic = document.getElementById('riskModalStatic');
+            const riskModalStaticTitle = document.getElementById('riskModalStaticTitle');
+            const riskModalStaticDetails = document.getElementById('riskModalStaticDetails');
+            const closeRiskModalStaticButton = document.getElementById('closeRiskModalStatic');
+
+            const geminiModal = document.getElementById('geminiModal');
+            const geminiModalTitle = document.getElementById('geminiModalTitle');
+            const geminiLoadingIndicator = document.getElementById('geminiLoadingIndicator');
+            const geminiResponseArea = document.getElementById('geminiResponseArea');
+            const closeGeminiModalButton = document.getElementById('closeGeminiModal');
+
+            function setActiveContent(targetId) {
+                let sectionToActivate = document.getElementById(targetId);
+
+                if (!sectionToActivate) {
+                    targetId = 'sissejuhatus'; // Default to first section if target is invalid
+                    sectionToActivate = document.getElementById(targetId);
+                }
+
+                // Update content sections
+                contentSections.forEach(section => {
+                    section.classList.toggle('active', section.id === targetId);
+                });
+
+                // Update nav links
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href').substring(1) === targetId);
+                });
+                
+                // Scroll into view
+                if (sectionToActivate) {
+                    setTimeout(() => { // Timeout to ensure section is visible before scrolling
+                        sectionToActivate.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                }
+            }
+            
+            // Event listener for navigation links
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    // Allow default behavior (hash change)
+                    // The hashchange event will handle updating the content
+                });
+            });
+
+            // Event listener for hash changes
+            window.addEventListener('hashchange', function() {
+                const targetIdFromHash = window.location.hash.substring(1);
+                setActiveContent(targetIdFromHash || 'sissejuhatus');
+            });
+
+            // Initial page load: Set active section based on current hash or default
+            const initialTargetId = window.location.hash.substring(1) || 'sissejuhatus';
+            setActiveContent(initialTargetId);
+            // Ensure hash is set if it was initially empty
+            if (!window.location.hash && initialTargetId === 'sissejuhatus') {
+                 history.replaceState(null, null, '#sissejuhatus');
+            }
+
+
+            // Accordion logic
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const alreadyOpen = button.classList.contains('open');
+                    button.classList.toggle('open');
+                    const icon = button.querySelector('span');
+                    if (icon) {
+                        icon.textContent = button.classList.contains('open') ? '-' : '+';
+                        icon.classList.toggle('rotate-45', button.classList.contains('open'));
+                    }
+                });
+            });
+
+            // Static Risk card modal logic
+            document.querySelectorAll('.risk-details-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const card = e.target.closest('.risk-card');
+                    if (card) {
+                        const title = card.querySelector('h4').textContent;
+                        const details = card.dataset.riskDetails;
+                        riskModalStaticTitle.textContent = title;
+                        riskModalStaticDetails.textContent = details;
+                        riskModalStatic.classList.remove('hidden');
+                    }
+                });
+            });
+
+            if(closeRiskModalStaticButton) {
+                closeRiskModalStaticButton.addEventListener('click', () => {
+                    riskModalStatic.classList.add('hidden');
+                });
+            }
+            if(riskModalStatic){
+                riskModalStatic.addEventListener('click', (event) => {
+                    if (event.target === riskModalStatic) { 
+                        riskModalStatic.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Gemini API Süvaanalüüs logic
+            async function fetchGeminiAnalysis(riskTitle, riskDetails) {
+                geminiResponseArea.innerHTML = '';
+                geminiLoadingIndicator.style.display = 'block';
+                geminiModal.classList.remove('hidden');
+
+                const prompt = `Paku põhjalik süvaanalüüs järgmise riski kohta seoses tehisintellekti "Deep Research" funktsiooniga: "${riskTitle}". Riski lühikirjeldus on: "${riskDetails}". Palun selgita riski olemust sügavamalt, too konkreetseid näiteid või stsenaariumeid, kus see risk võib realiseeruda. Keskendu praktilistele aspektidele ja võimalikele tagajärgedele. Vasta eesti keeles. Vorminda vastus selgelt loetavateks lõikudeks.`;
+
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(`API viga: ${response.status} ${response.statusText}. Vastus: ${errorBody}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        geminiResponseArea.innerHTML = `<p>${text.replace(/\n/g, '</p><p>')}</p>`;
+                    } else if (result.promptFeedback && result.promptFeedback.blockReason) {
+                        geminiResponseArea.innerHTML = `<p>Sisu genereerimine blokeeriti: ${result.promptFeedback.blockReason}. Proovi päringut muuta.</p>`;
+                    }
+                    else {
+                        geminiResponseArea.innerHTML = '<p>Vabandust, analüüsi genereerimine ebaõnnestus (ootamatu vastus). Proovi hiljem uuesti.</p>';
+                    }
+                } catch (error) {
+                    console.error('Gemini API kutse viga:', error);
+                    geminiResponseArea.innerHTML = `<p>Vabandust, analüüsi laadimisel tekkis tehniline probleem. Veateade: ${error.message}. Proovi hiljem uuesti.</p>`;
+                } finally {
+                    geminiLoadingIndicator.style.display = 'none';
+                }
+            }
+            
+            document.querySelectorAll('.risk-card').forEach(card => {
+                const analysisButton = document.createElement('button');
+                analysisButton.innerHTML = 'Süvaanalüüs ✨';
+                analysisButton.className = 'custom-button mt-3 px-3 py-1.5 rounded-md text-xs sm:text-sm w-full transition-colors duration-150 ease-in-out';
+                analysisButton.onclick = function() {
+                    const title = card.querySelector('h4').textContent;
+                    const details = card.dataset.riskDetails;
+                    geminiModalTitle.textContent = `✨ Süvaanalüüs: ${title}`;
+                    fetchGeminiAnalysis(title, details);
+                };
+                card.appendChild(analysisButton);
+            });
+
+            if(closeGeminiModalButton){
+                closeGeminiModalButton.addEventListener('click', () => {
+                    geminiModal.classList.add('hidden');
+                });
+            }
+            if(geminiModal){
+                geminiModal.addEventListener('click', (event) => {
+                    if (event.target === geminiModal) {
+                        geminiModal.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Hallucination example logic
+            window.revealHallucinationAnswer = function(button) {
+                const answerEl = button.nextElementSibling;
+                if (answerEl && answerEl.classList.contains('hallucination-answer')) {
+                    answerEl.classList.toggle('hidden');
+                    button.textContent = answerEl.classList.contains('hidden') ? 'Näita vastust' : 'Peida vastus';
+                }
+            }
+        });
+    </script>
+</body>
+</html> 
