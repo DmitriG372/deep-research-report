@@ -74,5 +74,13 @@ def gemini_proxy():
             "message": str(e)
         }), 500
 
+@app.route('/health')
+def health():
+    return "ok"
+
+@app.route('/')
+def index():
+    return "Server töötab!"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
