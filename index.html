@@ -35,19 +35,21 @@
             background-color: #E7E5E4; /* stone-200 */
         }
         .accordion-button span { color: #A8A649; }
-        .accordion-content { 
-            max-height: 0; 
-            overflow: hidden; 
-            transition: max-height 0.3s ease-out; 
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0; /* eemaldab kokkupandud olekus padja, et tekst ei vilguks */
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
             background-color: #FAFAF9; /* stone-50 */
             border-left: 4px solid #A8A649;
             white-space: normal;
             word-break: break-word;
         }
         .accordion-button.open + .accordion-content {
-            max-height: none;
+            max-height: 2000px;  /* piisavalt suur väärtus, et kogu sisu mahuks */
+            padding: 1rem;       /* taastab p-4 padja lahtises olekus */
             overflow: visible;
-            transition: max-height 0.3s ease-in;
+            transition: max-height 0.3s ease-in, padding 0.3s ease-in;
         }
         
         .tooltip {
