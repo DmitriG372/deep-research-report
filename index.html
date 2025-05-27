@@ -468,13 +468,36 @@
 
             // Accordion logic
             accordionButtons.forEach(button => {
+                button.classList.remove('open'); // alati suletud alguses
+                const content = button.nextElementSibling;
+                if (content) {
+                    content.style.maxHeight = null;
+                    content.style.height = '0';
+                    content.style.padding = '0';
+                    content.style.overflow = 'hidden';
+                }
                 button.addEventListener('click', () => {
                     const alreadyOpen = button.classList.contains('open');
-                    button.classList.toggle('open');
-                    const icon = button.querySelector('span');
-                    if (icon) {
-                        icon.textContent = button.classList.contains('open') ? '-' : '+';
-                        icon.classList.toggle('rotate-45', button.classList.contains('open'));
+                    // Sulge kõik akordionid
+                    accordionButtons.forEach(btn => {
+                        btn.classList.remove('open');
+                        const c = btn.nextElementSibling;
+                        if (c) {
+                            c.style.maxHeight = null;
+                            c.style.height = '0';
+                            c.style.padding = '0';
+                            c.style.overflow = 'hidden';
+                        }
+                    });
+                    // Ava ainult kui polnud juba avatud
+                    if (!alreadyOpen) {
+                        button.classList.add('open');
+                        if (content) {
+                            content.style.maxHeight = '4000px';
+                            content.style.height = 'auto';
+                            content.style.padding = '1rem';
+                            content.style.overflow = 'visible';
+                        }
                     }
                 });
             });
