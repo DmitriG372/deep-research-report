@@ -509,43 +509,132 @@
                 geminiLoadingIndicator.style.display = 'block';
                 geminiModal.classList.remove('hidden');
 
-                const prompt = `Paku põhjalik süvaanalüüs järgmise riski kohta seoses tehisintellekti "Deep Research" funktsiooniga: "${riskTitle}". Riski lühikirjeldus on: "${riskDetails}". Palun selgita riski olemust sügavamalt, too konkreetseid näiteid või stsenaariumeid, kus see risk võib realiseeruda. Keskendu praktilistele aspektidele ja võimalikele tagajärgedele. Vasta eesti keeles. Vorminda vastus selgelt loetavateks lõikudeks.`;
+                // Ettemääratud tekstid riskide kohta
+                const riskTexts = {
+                    'Hallutsinatsioonid': `Tehisintellekti "Deep Research" funktsiooni hallutsinatsioonid kujutavad endast tõsist riski, kuna need võivad viia valeinformatsiooni levitamiseni ja valede järeldusteni.  Riski olemus peitub selles, et TI genereerib usutavalt kõlavat teksti, mis sisaldab faktilist ebatäpsust või viiteid olematutele allikatele. See ebatäpsus ei ole alati ilmne ja võib olla peenelt segatud korrektse informatsiooniga, muutes valede tuvastamise keeruliseks nii algajatele kui ka ekspertidele.  Seega ei ole tegemist lihtsalt triviaalsete vigadega, vaid süstemaatiliste eksimustega, mis võivad olla kahjulikud.
 
-                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                const payload = { contents: chatHistory };
-                const apiUrl = 'https://research.fly.dev/api/gemini';
+Konkreetsed näited hallutsinatsioonidest "Deep Research" kontekstis võivad hõlmata järgmist:
 
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+* **Teaduslikud väited:** TI võib genereerida aruande, mis väidab uuringu olemasolu konkreetsel teemal, viidates konkreetsele ajakirjale ja autorile, kuid tegelikkuses sellist uuringut ei ole olemas. See võib viia valede teaduslike järeldusteni ja otsuste vastuvõtmiseni, mis põhinevad valel informatsioonil.  Näiteks võiks TI väita, et "uuring ajakirjas Nature näitas, et kohv enne magamaminekut parandab und", ilma et sellist uuringut oleks tegelikult kunagi avaldatud.
 
-                    if (!response.ok) {
-                        const errorBody = await response.text();
-                        throw new Error(`API viga: ${response.status} ${response.statusText}. Vastus: ${errorBody}`);
-                    }
+* **Ajalooline informatsioon:** TI võib esitada valeandmeid ajalooliste sündmuste kohta, näiteks valesid kuupäevi, isikuid või asukohti. See võib viia moonutatud ajaloolise narratiivi loomiseni ja valede järeldusteni ajaloolise konteksti kohta. Näiteks võiks TI väita, et "Eesti iseseisvusdeklaratsioon kuulutati välja 1920. aasta mais Tallinnas".
 
-                    const result = await response.json();
+* **Kirjanduslikud viited:** TI võiks viidata olematutele raamatutele või artiklitele, tsiteerida olematuid autoreid või lehekülgi. See võib raskendada teabe allikate kontrollimist ja viia eksitavate järeldusteni.
 
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        geminiResponseArea.innerHTML = `<p>${text.replace(/\n/g, '</p><p>')}</p>`;
-                    } else if (result.promptFeedback && result.promptFeedback.blockReason) {
-                        geminiResponseArea.innerHTML = `<p>Sisu genereerimine blokeeriti: ${result.promptFeedback.blockReason}. Proovi päringut muuta.</p>`;
-                    }
-                    else {
-                        geminiResponseArea.innerHTML = '<p>Vabandust, analüüsi genereerimine ebaõnnestus (ootamatu vastus). Proovi hiljem uuesti.</p>';
-                    }
-                } catch (error) {
-                    console.error('Gemini API kutse viga:', error);
-                    geminiResponseArea.innerHTML = `<p>Vabandust, analüüsi laadimisel tekkis tehniline probleem. Veateade: ${error.message}. Proovi hiljem uuesti.</p>`;
-                } finally {
-                    geminiLoadingIndicator.style.display = 'none';
-                }
+* **Finantsinfot sisaldavad aruanded:**  Kui TI genereerib finantsaruandeid või -analüüse, võivad hallutsinatsioonid viia valel põhinevate investeerimisotsuste vastuvõtmiseni, põhjustades rahalist kahju.
+
+Praktilised tagajärjed võivad olla ulatuslikud.  Lisaks valedele tulemustele ja rahalistele kaotustele võib "musta kasti" probleem viia ka usalduse kadumiseni TI vastu.  Kui inimesed ei saa aru, kuidas TI töötab, on neil keeruline seda usaldada ja sellele toetuda.  See võib takistada TI laialdast rakendamist erinevates valdkondades, kus usaldusväärsus on kriitilise tähtsusega.  Lisaks tekib ka eetiline küsimus vastutuse kohta - kes vastutab, kui TI teeb vea, mida ei ole võimalik seletada ega parandada?
+
+Lõppkokkuvõttes nõuab "musta kasti" probleemi lahendamine läbipaistvamat TI arendamist.  On vaja luua meetodeid, mis võimaldavad paremini mõista TI järelduskäiku ja tuvastada võimalikke vigu. See hõlmab nii tehnoloogilisi lahendusi, näiteks selgitusvõimelise tehisintellekti (Explainable AI - XAI) arendamist, kui ka uusi regulatsioone ja standardeid, mis tagavad TI läbipaistvuse ja vastutuse.`,
+
+                    'Andmete kallutatus (Bias)': `Tehisintellekti "Deep Research" funktsiooni puhul kujutab andmete kallutatus (bias) endast tõsist riski, mis võib viia tõsiste ebaõiglaste ja diskrimineerivate tulemusteni.  Risk seisneb selles, et TI-süsteem, mis on treenitud suures mahus andmetel, peegeldab ja sageli võimendab neis juba olemasolevaid eelarvamusi. See ei ole süsteemi tahtlik pahatahtlikkus, vaid pigem peegelpilt ebatäiuslikest ja kallutatud allikatest, millel süsteem põhineb.
+
+**Riski olemus:** Andmete kallutatus tekib siis, kui treeningandmed ei ole esinduslikud kogu populatsioonist.  See võib tuleneda mitmesugustest teguritest, näiteks:
+
+* **Ajaloolised eelarvamused:**  Paljud andmebaasid kajastavad ajaloolisi eelarvamusi, näiteks naiste vähemuspositsiooni teatud ametites või rassilise diskrimineerimise esinemist kriminaalõigussüsteemis.  TI, mis on nende andmete põhjal treenitud, võimendab neid eelarvamusi oma väljundis.
+* **Valimivigu:** Andmete kogumine võib olla valimiv, näiteks kui uuring keskendub ainult ühele kindlale demograafilisele rühmale, jättes teised esindamata.
+* **Inimese poolt tekitatud kallutatus:**  Andmete märgistamine (labeling) inimeste poolt on altid subjektiivsusele ja eelarvamustele. Näiteks piltide märgistamine võib olla kallutatud, kui märgistaja assotsieerib teatud omadusi kindlate rasside või soodega.
+* **Veebiallikate kallutatus:**  Kui TI treeningandmed pärinevad veebist, peegeldavad need veebis leiduvat kallutatuste komplekti, mis sisaldavad näiteks vihakõnet, valeinformatsiooni ja stereotüüpe.
+
+
+**Konkreetsed näited ja stsenaariumid:**
+
+* **Töökuulutuste filtreerimine:** TI-põhine töökuulutuste filtreerimissüsteem, mis on treenitud kallutatud andmetel, võib diskrimineerida teatud soo või rassi kuuluvaid kandidaate, isegi kui see pole süsteemi otsene eesmärk.
+* **Laenude taotlemine:**  TI-põhine laenutaotluste hindamissüsteem võib anda naistele või vähemusrahvaste esindajatele ebavõrdseid hinnanguid, kui treeningandmed kajastavad ajaloolisi eelarvamusi laenamise valdkonnas.
+* **Kriminaalhooldus:**  TI-põhine süsteem, mis ennustab kuritegevuse tõenäosust, võib kallutatud andmete tõttu sihtida teatud rassirühmi ebaproportsionaalselt, tugevdades olemasolevaid eelarvamusi kriminaalõigussüsteemis.
+* **Meditsiiniline diagnoosimine:**  Kui TI-süsteemi treenitakse andmetel, mis ei esinda piisavalt eri rahvaste esindajaid, võib see viia vähem täpsete diagnooside ja raviplaanideni teatud rühmade puhul.
+
+**Praktilised tagajärjed:**
+
+Andmete kallutatus "Deep Research" funktsioonis võib põhjustada:
+
+* **Diskrimineerimist ja ebavõrdsust:** See võib viia ebaõiglaste tulemusteni erinevate rühmade puhul, süvendades sotsiaalset ebavõrdsust.
+* **Usalduse kaotust:** Kui süsteemi tulemusi peetakse kallutatud ja ebaõiglasteks, langeb selle vastu usaldus.
+* **Juriidilisi probleeme:** Ettevõtted ja organisatsioonid võivad sattuda juriidilistesse probleemidesse, kui nende TI-süsteemid on diskrimineerivad.
+* **Väära arusaamade ja valeinformatsiooni levitamine:** Kallutatud andmetest lähtuv TI võib levitada valeinformatsiooni ja tugevdada eelarvamusi.
+
+
+Andmete kallutatuse riski minimeerimiseks on vaja teha pingutusi andmete kvaliteedi ja esinduslikkuse parandamiseks, kasutada mitmekesiseid andmeallikaid ja rakendada meetodeid kallutatuse tuvastamiseks ja vähendamiseks.  Tuleb olla teadlik sellest riskist ja aktiivselt selle vastu võidelda, et tagada TI-süsteemide õiglus ja usaldusväärsus.`,
+
+                    'Puudulik kontekstitaju': `Tehisintellekti (TI) "Deep Research" funktsiooni puudulik kontekstitaju on tõsine risk, mis tuleneb TI võimatusest täielikult mõista inimkeele nüansse ja kaudseid tähendusi.  Sõna-sõnalt korrektne analüüs ei garanteeri korrektset tõlgendust, sest  inimese keel on rikas kontekstist ja emotsionaalsest varjundist, mida TI praegu veel piisavalt hästi ei suuda "tõlkida".  See risk ei ole lihtsalt väike ebamäärasus, vaid võib viia tõsiste valestõlgenduste ja ebaõigete järeldusteni.
+
+**Riski olemus:**  TI tugineb suures osas statistilistele seostele sõnade vahel, mis on saadud tohutu hulga tekstide analüüsimise tulemusena. See tähendab, et ta suudab tuvastada sõnade ja fraaside esinemise sagedust ja korrelatsioone, kuid ei "mõista" alati nende sügavat tähendust konkreetse konteksti valguses.  Näiteks, sarkasm, iroonia ja metafoorid sõltuvad tugevalt kontekstist ja toonist, mida TI sageli ei suuda eristada.  Samuti on keeruline arvestada kultuurilisi norme ja erisusi, mis mõjutavad sõnade tähendust ja interpretatsiooni.  TI võib interpreteerida sõnumeid liiga sõna-sõnaliselt, jättes tähelepanuta kaudsed tähendused ja emotsioonid.
+
+**Konkreetsed näited ja stsenaariumid:**
+
+* **Uudisteanalüüs:** TI võib uudisteartiklist lugeda fakte korrektselt, kuid valeks interpreteerida artikli toonust ja toimetaja seisukohta.  Näiteks, uudis pealkirjaga "Valitsus lubas majanduslanguse" võib TI tõlgendada kui positiivset uudisteteadet, kui see analüüsib ainult sõnu, jättes tähelepanuta pealkirja negatiivse varjundi.
+* **Klienditeenindus:**  Kui klient kirjutab klienditeenindusele e-kirja, kus väljendab rahulolematust sarkastiliselt ("Oh, see oli tõesti *fantastiline* kogemus!"), võib TI seda interpreteerida kui positiivset tagasisidet, mis viib vale reageerimiseni.
+* **Meditsiiniline diagnostika:** TI abil analüüsides patsiendi kirjeldusi sümptomite kohta, võib puudulik kontekstitaju viia vale diagnoosi panemiseni. Näiteks, kui patsient kirjeldas valu "kergeks" aga kasutas seda kontekstis, kus tema kirjeldus oli pigem alatähtsustav, võiks TI seda tõlgendada tõepoolest kerge valuga, mitte aga sümptomite allahindamisena.
+* **Õiguskaitse:**  TI-l põhinev süsteem, mis analüüsib kohtute stenogramme või politseiaruandeid, võiks ekslikult tõlgendada sarkasm või irooniat ohvri või tunnistaja ütlustes, mis moonutab uurimist ja õiglust.
+
+
+**Praktilised tagajärjed:**
+
+Puudulik kontekstitaju võib viia valedateni, halbade otsustusteni ja reputatsioonikahjustusteni.  See võib mõjutada uudiste usaldusväärsust, kliendirahulolu, meditsiinilist abi ja õigussüsteemi toimimist.  Lisaks võib see tugevdada tehisintellekti süsteemi eelarvamusi ja diskrimineerimist, kui TI tugineb kontekstist lahti rebitud infole.
+
+**Lahendused:**
+
+Riski leevendamiseks on vaja edusamme TI loomuliku keele mõistmises. See hõlmab keerukamaid algoritme, mis suudavad arvestada konteksti, tooni ja kultuurilisi nüansse.  Samuti on oluline lisada inimjärelevalve süsteemidesse, mis tuvastaks potentsiaalsed valestõlgendused.  Andmete kvaliteet ja mitmekesisus on samuti kriitilised, et tagada TI koolituse tasakaalustatus ja vähendada eelarvamusi.`,
+
+                    'Allikate ebausaldusväärsus': `Tehisintellekti "Deep Research" funktsiooni allikate ebausaldusväärsus on tõsine risk, millel on potentsiaal viia tõsiste tagajärgedeni.  See risk ei peitu mitte ainult tehnoloogia enda piirangutes, vaid ka inimese kalduvuses usaldada pimesi tehnoloogiat ja selle genereeritud informatsiooni.  Riski olemus seisneb selles, et TI võib koguda ja töödelda infot internetist, kus on palju ebausaldusväärseid allikaid – alates valeuudest ja vandenõuteooriatest kuni vananenud või kontekstist välja rebitud informatsioonini.  TI, oma piiratud kriitilise mõtlemise võimega, ei suuda eristada usaldusväärset infot ebausaldusväärsest ja esitab kõik allikad võrdselt usaldusväärsetena.
+
+**Konkreetsed näited ja stsenaariumid:**
+
+* **Meditsiiniline informatsioon:** Kasutaja otsib infot haruldase haiguse kohta.  TI kogub andmeid mitmest allikast, sealhulgas foorumitest ja isiklike blogide postitustest, mis sisaldavad valeinfot või vananenud ravimeetodeid. Kasutaja usub seda infot ja võtab vastu otsuseid oma tervise kohta, mis võivad olla ohtlikud.
+
+* **Finantsnõustamine:**  TI genereerib finantsstrateegia, tuginedes vananenud majandusnäitajatele ja ebausaldusväärsetele uudisportaalide artiklitele. Kasutaja investeerib vastavalt sellele strateegiatele ja kaotab oma raha.
+
+* **Poliitiline propaganda:**  TI toodab raporti poliitilise teema kohta, tuginedes peamiselt ühepoolsele propagandale ja valeuudestele.  Kasutaja, kes loodab TI objektiivsusele, saab moonutatud arusaama olukorrast ja teeb otsuseid, mis toetavad valeinfot levitavat gruppi.
+
+* **Akadeemiline uurimus:**  Üliõpilane kasutab TI abi oma akadeemilise töö kirjutamisel. TI toob välja ebausaldusväärseid allikaid, ilma nende usaldusväärsust kriitiliselt hindamata.  See toob kaasa akadeemilise aususe rikkumise ja ebapiisavalt põhjendatud argumente.
+
+**Praktilised tagajärjed:**
+
+Ebausaldusväärsete allikate kasutamine TI poolt võib viia:
+
+* **Valede otsuste langetamiseni:** Alates terviseküsimustest kuni rahaliste investeeringuteni.
+* **Valeinformatsiooni levikuni:**  TI võib saada valeinformatsiooni levitamise kanaliks, tugevdades valede ja vandenõuteooriate usaldusväärsust.
+* **Usalduse kadumiseni tehnoloogia vastu:** Kui TI esitab ebausaldusväärset infot, võib see vähendada inimeste usaldust tehisintellekti ja selle võimete vastu.
+* **Juriidiliste probleemideni:** Valeinfo levitamine TI poolt võib viia juriidiliste tagajärgedeni, eriti kui see põhjustab teistele kahju.
+
+**Mida teha?**
+
+Kasutajad peavad olema kriitilised ja kontrollima TI poolt esitatud infot iseseisvalt. Allikate hindamine on kriitilise tähtsusega.  Tehnoloogia arendajad peavad keskenduma TI võimele kriitiliselt hinnata infot ja filtreerida välja ebausaldusväärsed allikad.  Haridus mängib olulist rolli, et inimesed oskaksid eristada usaldusväärset ja ebausaldusväärset infot ning kasutaksid tehnoloogiat kriitilise mõtlemisega.`,
+
+                    'Teadmiste piiratus': `Tehisintellekti "Deep Research" (DR) funktsiooni "teadmiste piiratus" risk on seotud sellega, et DR süsteemi teadmised põhinevad eelnevalt kogutud ja töödeldud andmetel, mis on teatud ajahetkel fikseeritud.  See tähendab, et süsteem ei saa juurdepääsu reaalajas informatsioonile ja ei ole võimeline iseseisvalt uut infot genereerima või kontrollima andmete täpsust pärast treeningandmete kogumist.  See piiratus toob kaasa mitmeid probleeme.
+
+**Riski olemus:**  DR-i "baasteadmised" on staatilised ja ajaliselt piiratud.  Kuigi süsteem suudab otsida veebist infot, on selle võimetus iseseisvalt kriitiliselt hinnata leitud teabe usaldusväärsust ja ajakohasust märkimisväärne puudus.  See tähendab, et DR võib pakkuda vastuseid, mis on osaliselt või täielikult vananenud, ebatäpsed või isegi valed, sest need põhinevad aegunud allikatel.  Lisaks puudub DR-il võime katta väga spetsiifilisi või vähe uuritud teemasid, kus veebipõhist infot on vähe või seda on raske leida.
+
+**Konkreetsed näited ja stsenaariumid:**
+
+* **Meditsiiniline diagnoos:** DR-ile esitatud küsimus meditsiinilise sümptomi kohta võib anda vastuse, mis põhineb vananenud ravijuhistele või uuringutele. See võib viia patsiendi vale raviks või diagnoosi hilinemiseni.
+* **Finantsinvesteeringud:** DR-i kasutamine investeerimisotsuste tegemiseks võib olla ohtlik, kuna süsteem ei pruugi arvestada hiljutisi turumuutusi või uusi regulatsioone. See võib viia oluliste finantskahjudeni.
+* **Juriidiline nõustamine:** DR-ile esitatud juriidilise küsimuse puhul võib vastus olla aegunud seaduse alusel, mis on juba tühistatud või muudetud. See võib viia ebaõiglase kohtuotsuse või õigusliku konflikti tekkimiseni.
+* **Teaduslik uurimistöö:** DR ei pruugi olla võimeline pakkuma uusimaid teaduslikke avastusi või uuringuid, mis ei ole veel laialdaselt veebis kättesaadavad. See võib takistada teadusliku uurimistöö edenemist.
+
+**Praktilised tagajärjed:**
+
+Teadmiste piiratus võib viia valede otsuste tegemisele, aja ja ressursside raiskamisele, usalduse kaotusele süsteemi vastu ning potentsiaalselt ka rahaliste kahjudeni ja ohutusriskideni.  Seega on oluline olla teadlik DR-i piirangutest ja kasutada selle väljundit kriitilise mõtlemisega, kontrollides teavet usaldusväärsetest allikatest ja arvestades informatsiooni ajakohasust. DR peaks olema vaid üks infolülide seas, mitte ainsaks tõe allikaks.
+
+**Järeldus:**  DR-i "teadmiste piiratus" on tõsine risk, millega tuleb arvestada.  Süsteemi täiustamine ja pidev värskendamine on vajalik, et vähendada selle negatiivseid tagajärgi. Kasutajatel tuleb aga jääda kriitiliseks ja iseseisvalt kontrollida DR-i pakutava teabe usaldusväärsust ja ajakohasust.`,
+
+                    '"Musta kasti" probleem': `"Musta kasti" probleem tehisintellekti (TI) "Deep Research" funktsioonis viitab sellele, et TI järelduskäik on sageli nii keeruline ja mitmekihiline, et inimene ei suuda seda täielikult mõista. See läbipaistmatus tekitab olulise riski, kuna raskendab oluliselt vigade tuvastamist ja parandamist, samuti usaldusväärsuse hindamist.  Teisisõnu, me saame näha sisendit ja väljundit, aga protsessi nende vahel jääb meile suuresti arusaamatuks.
+
+See risk realiseerub mitmel viisil. Näiteks võib "Deep Research" funktsioon anda valeandmeid meditsiinilise diagnoosi kohta, tuginedes keerulisele andmetöötlusprotsessile, mida arstid ei suuda kontrollida ega mõista.  Kui tulemus on vale, on raske kindlaks teha, millises etapis viga toimus.  See raskendab mitte ainult vea parandamist, vaid ka usalduse taastamist süsteemi vastu.  Sama stsenaarium on võimalik finantssektoris, kus vale ennustus võib põhjustada suuri rahalisi kaotusi.  Analüütikud ei suuda aru saada, miks TI teatud otsuse langetas, mistõttu ei saa nad vigadest õppida ega süsteemi parandada.
+
+Teine näide on autonoomsete sõidukite kontekstis. Kui autonoomne auto satub õnnetusse, võib "musta kasti" probleem raskendada õnnetuse põhjuste väljaselgitamist.  Auto tehisintellekti otsustusprotsessi analüüsimine võib osutuda võimatuks, mis takistab ohutuse parandamist ja tulevaste õnnetuste ennetamist.
+
+Praktilised tagajärjed võivad olla ulatuslikud.  Lisaks valedele tulemustele ja rahalistele kaotustele võib "musta kasti" probleem viia ka usalduse kadumiseni TI vastu.  Kui inimesed ei saa aru, kuidas TI töötab, on neil keeruline seda usaldada ja sellele toetuda.  See võib takistada TI laialdast rakendamist erinevates valdkondades, kus usaldusväärsus on kriitilise tähtsusega.  Lisaks tekib ka eetiline küsimus vastutuse kohta - kes vastutab, kui TI teeb vea, mida ei ole võimalik seletada ega parandada?
+
+Lõppkokkuvõttes nõuab "musta kasti" probleemi lahendamine läbipaistvamat TI arendamist.  On vaja luua meetodeid, mis võimaldavad paremini mõista TI järelduskäiku ja tuvastada võimalikke vigu. See hõlmab nii tehnoloogilisi lahendusi, näiteks selgitusvõimelise tehisintellekti (Explainable AI - XAI) arendamist, kui ka uusi regulatsioone ja standardeid, mis tagavad TI läbipaistvuse ja vastutuse.`
+                };
+
+                // Otsi vastav tekst riski pealkirja järgi
+                const text = riskTexts[riskTitle] || 'Süvaanalüüs pole saadaval.';
+                
+                // Kuva tekst
+                geminiResponseArea.innerHTML = `<p>${text.replace(/\n/g, '</p><p>')}</p>`;
+                geminiLoadingIndicator.style.display = 'none';
             }
             
             document.querySelectorAll('.risk-card').forEach(card => {
