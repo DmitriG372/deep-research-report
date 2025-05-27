@@ -37,19 +37,22 @@
         .accordion-button span { color: #A8A649; }
         .accordion-content {
             max-height: 0;
+            height: 0; /* lisatud, et sisu oleks täielikult peidus */
             overflow: hidden;
-            padding: 0; /* eemaldab kokkupandud olekus padja, et tekst ei vilguks */
-            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding: 0;
+            border: none;
+            transition: max-height 0.3s ease-out, height 0.3s ease-out, padding 0.3s ease-out;
             background-color: #FAFAF9; /* stone-50 */
             border-left: 4px solid #A8A649;
             white-space: normal;
             word-break: break-word;
         }
         .accordion-button.open + .accordion-content {
-            max-height: 2000px;  /* piisavalt suur väärtus, et kogu sisu mahuks */
+            max-height: 4000px;  /* suurendatud, et ka pikad tekstid mahuksid */
+            height: auto; /* avatud olekus näita kogu sisu */
             padding: 1rem;       /* taastab p-4 padja lahtises olekus */
             overflow: visible;
-            transition: max-height 0.3s ease-in, padding 0.3s ease-in;
+            transition: max-height 0.3s ease-in, height 0.3s ease-in, padding 0.3s ease-in;
         }
         
         .tooltip {
@@ -630,8 +633,9 @@ Lõppkokkuvõttes nõuab "musta kasti" probleemi lahendamine läbipaistvamat TI 
                 };
 
                 // Otsi vastav tekst riski pealkirja järgi
-                const text = riskTexts[riskTitle] || 'Süvaanalüüs pole saadaval.';
-                
+                let text = riskTexts[riskTitle] || 'Süvaanalüüs pole saadaval.';
+                // Asenda **tekst** -> <b><i>tekst</i></b>
+                text = text.replace(/\*\*(.*?)\*\*/g, '<b><i>$1</i></b>');
                 // Kuva tekst
                 geminiResponseArea.innerHTML = `<p>${text.replace(/\n/g, '</p><p>')}</p>`;
                 geminiLoadingIndicator.style.display = 'none';
